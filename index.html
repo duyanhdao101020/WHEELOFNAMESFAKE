@@ -44,7 +44,8 @@ background:linear-gradient(#e0263f,#a30c20);box-shadow:0 4px 0 #6c0715}
 button.go:hover{background:linear-gradient(#ea3550,#b30e25)}
 button.go:active{transform:translateY(3px);box-shadow:0 1px 0 #6c0715}
 button:disabled{opacity:.55;cursor:not-allowed}
-#mute{position:fixed;right:12px;bottom:12px;z-index:5;background:var(--gold);color:var(--ink);border-color:var(--deep);font-size:20px;padding:6px 12px}
+#mute,#music{position:fixed;bottom:12px;z-index:5;background:var(--gold);color:var(--ink);border-color:var(--deep);font-size:20px;padding:6px 12px}
+#mute{right:12px}#music{right:68px}#music.off{opacity:.55;text-decoration:line-through}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:8}
 .modal{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(40,0,6,.7);padding:16px}
 .modal.on{display:flex}
@@ -86,6 +87,7 @@ box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6)
   </section>
 </main>
 
+<button id="music" type="button" title="背景音乐" aria-label="背景音乐">🎵</button>
 <button id="mute" type="button" title="开关声音" aria-label="开关声音">🔊</button>
 <canvas id="fx"></canvas>
 <div class="toast" id="toast"></div>
@@ -174,15 +176,15 @@ function audio(){
   }
   if(ac.state==='suspended')ac.resume(); return ac;
 }
-function tone(f,t,d,type,v,f2){
+function tone(f,t,d,type,v,f2,dst){
   const o=ac.createOscillator(),g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(f,t);
   if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
   g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.008); g.gain.exponentialRampToValueAtTime(.0005,t+d);
-  o.connect(g); g.connect(master); o.start(t); o.stop(t+d+.05);
+  o.connect(g); g.connect(dst||master); o.start(t); o.stop(t+d+.05);
 }
-function burst(t,d,type,f,q,v){
+function burst(t,d,type,f,q,v,dst){
   const s=ac.createBufferSource(),b=ac.createBiquadFilter(),g=ac.createGain(); s.buffer=nb; b.type=type; b.frequency.value=f; b.Q.value=q;
-  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); s.connect(b); b.connect(g); g.connect(master); s.start(t,Math.random()); s.stop(t+d+.02);
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); s.connect(b); b.connect(g); g.connect(dst||master); s.start(t,Math.random()); s.stop(t+d+.02);
 }
 const sfx={
   tick(){ if(muted)return; const t=audio().currentTime; tone(1900+Math.random()*250,t,.045,'square',.04); tone(720,t,.05,'triangle',.14) },
@@ -209,6 +211,42 @@ const sfx={
   }
 };
 
+/* ---------- nhạc nền (tự tạo, giai điệu ngũ cung vui nhộn) ---------- */
+const E=60/132/2, MEL=[12,14,16,14,12,9,7,9,12,14,16,19,16,14,12,null, 9,12,14,12,9,7,9,12,14,12,9,7,4,2,0,null],
+      BASS=[-24,-24,-17,-17,-15,-15,-17,-17,-24,-24,-17,-17,-15,-15,-17,-24], hz=n=>523.25*Math.pow(2,n/12);
+let mg,mTimer=0,mNext=0,mStep=0,musicOn=true,intense=false;
+function pluck(f,t,d,v){
+  const o=ac.createOscillator(),b=ac.createBiquadFilter(),g=ac.createGain(); o.type='sawtooth'; o.frequency.value=f;
+  b.type='lowpass'; b.frequency.setValueAtTime(3800,t); b.frequency.exponentialRampToValueAtTime(600,t+d);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.005); g.gain.exponentialRampToValueAtTime(.0005,t+d);
+  o.connect(b); b.connect(g); g.connect(mg); o.start(t); o.stop(t+d+.05);
+}
+function musicStep(t,e){
+  const m=MEL[e%32];
+  if(m!==null){pluck(hz(m),t,.34,.15);pluck(hz(m)*2,t,.12,.04)}
+  if(e%2===0)tone(hz(BASS[(e/2)%16]),t,.4,'triangle',.22,0,mg);
+  if(e%8===0)tone(160,t,.3,'sine',.7,55,mg); else if(e%8===4)tone(130,t,.22,'sine',.45,60,mg); else if(intense&&e%2===0)tone(120,t,.15,'sine',.3,60,mg);
+  if(e%2===1||intense)burst(t,.05,'highpass',5000,.7,.13,mg);
+  if(e%16===0)[1,2.76,5.4].forEach((k,i)=>tone(300*k,t,1.4/(i+1),'sine',.1/(i+1),0,mg));
+}
+function startMusic(){
+  if(muted||!musicOn||mTimer)return; audio();
+  if(!mg){mg=ac.createGain();mg.connect(master)}
+  const t=ac.currentTime; mg.gain.cancelScheduledValues(t); mg.gain.setValueAtTime(.0001,t); mg.gain.linearRampToValueAtTime(.4,t+.8);
+  mNext=t+.1; mStep=0;
+  mTimer=setInterval(()=>{while(mNext<ac.currentTime+.25){musicStep(mNext,mStep++);mNext+=E}},50);
+}
+function stopMusic(){
+  if(!mTimer)return; clearInterval(mTimer); mTimer=0;
+  const t=ac.currentTime; mg.gain.cancelScheduledValues(t); mg.gain.setValueAtTime(mg.gain.value,t); mg.gain.linearRampToValueAtTime(.0001,t+.5);
+}
+function level(v,sec){ // chỉnh âm lượng nhạc nền mượt
+  if(!mTimer)return; const t=ac.currentTime; mg.gain.cancelScheduledValues(t);
+  mg.gain.setValueAtTime(Math.max(mg.gain.value,.0001),t); mg.gain.linearRampToValueAtTime(v,t+sec);
+}
+let rt=0;
+function restoreSoon(){clearTimeout(rt);rt=setTimeout(()=>level(.4,1.8),4200)} // hò reo xong thì nhạc nổi lên lại
+
 /* ---------- pháo giấy ---------- */
 function confetti(){
   const k=$('fx'),x=k.getContext('2d'); k.width=innerWidth; k.height=innerHeight;
@@ -229,12 +267,12 @@ function confetti(){
 }
 
 /* ---------- quay ---------- */
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),1800)}
+function toast(m,ms){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),ms||1800)}
 function flick(){$('pointer').animate([{transform:'translateX(-50%) rotate(-24deg)'},{transform:'translateX(-50%) rotate(0)'}],{duration:130})}
 function spin(){
   if(spinning)return;
   if(names.length<2){toast('至少需要两个名字');return}
-  audio(); spinning=true; $('spin').disabled=true; sfx.start();
+  audio(); startMusic(); clearTimeout(rt); level(.1,.6); spinning=true; $('spin').disabled=true; sfx.start();
   const start=rot, total=(6+Math.floor(Math.random()*3))*TAU+Math.random()*TAU, dur=6500+Math.random()*1500, t0=performance.now();
   let last=idxAt(rot);
   (function f(now){
@@ -249,7 +287,7 @@ function done(i){
   const dup=names.filter(n=>key(n)===key(names[i])).length;
   $('removeAll').hidden=dup<2; $('removeAll').textContent='移除全部同名（'+dup+'）';
   $('who').textContent=names[i]; $('modal').classList.add('on'); $('again').focus();
-  sfx.win(); confetti();
+  restoreSoon(); sfx.win(); confetti();
 }
 function closeModal(){$('modal').classList.remove('on');try{speechSynthesis.cancel()}catch(e){}}
 
@@ -261,11 +299,24 @@ $('removeAll').onclick=()=>{ if(winner>=0){const k=key(names[winner]);setNames(n
 $('shuffle').onclick=()=>{const a=names.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}setNames(a)};
 $('sort').onclick=()=>setNames(names.slice().sort((a,b)=>a.localeCompare(b,'zh-CN')));
 $('clear').onclick=()=>{setNames([]);ta.focus()};
-$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';if(muted)try{speechSynthesis.cancel()}catch(e){}};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';if(muted){stopMusic();try{speechSynthesis.cancel()}catch(e){}}else startMusic()};
+$('music').onclick=()=>{musicOn=!musicOn;$('music').classList.toggle('off',!musicOn);if(musicOn)startMusic();else stopMusic()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 addEventListener('resize',resize);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
 sync(); resize();
+
+/* ---------- vào trang là phát nhạc nền ---------- */
+(function autoplay(){
+  audio(); startMusic();
+  if(ac.state==='running')return;
+  // trình duyệt chặn tự phát tiếng → phát ngay ở lần chạm/bấm phím đầu tiên
+  toast('点击页面任意处，开启背景音乐',60000);
+  const ev=['pointerdown','keydown','touchend'];
+  const go=()=>{ac.resume();ev.forEach(e=>removeEventListener(e,go,true))};
+  ev.forEach(e=>addEventListener(e,go,true));
+  ac.onstatechange=()=>{if(ac.state==='running'){clearTimeout(toast.t);$('toast').classList.remove('on')}};
+})();
 </script>
 </body>
 </html>
