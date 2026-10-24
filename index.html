@@ -98,6 +98,7 @@ box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6)
     <div class="row">
       <button id="again" type="button">再转一次</button>
       <button id="remove" type="button">移除此名</button>
+      <button id="removeAll" type="button" hidden></button>
     </div>
   </div>
 </div>
@@ -107,6 +108,7 @@ const $=id=>document.getElementById(id), TAU=Math.PI*2;
 const cv=$('wheel'), c=cv.getContext('2d'), ta=$('names');
 const COLORS=[['#c8102e','#ffe9ad'],['#fff0cc','#7d0c1b'],['#7d0c1b','#ffe9ad'],['#f2c14e','#7d0c1b']];
 let names=[], rot=0, spinning=false, winner=-1, muted=false;
+const key=t=>t.toLowerCase();
 
 /* ---------- lưu danh sách ---------- */
 const KEY='wheel-names';
@@ -244,6 +246,8 @@ function spin(){
 }
 function done(i){
   spinning=false; $('spin').disabled=false; winner=i;
+  const dup=names.filter(n=>key(n)===key(names[i])).length;
+  $('removeAll').hidden=dup<2; $('removeAll').textContent='移除全部同名（'+dup+'）';
   $('who').textContent=names[i]; $('modal').classList.add('on'); $('again').focus();
   sfx.win(); confetti();
 }
@@ -253,6 +257,7 @@ function closeModal(){$('modal').classList.remove('on');try{speechSynthesis.canc
 $('spin').onclick=spin; cv.onclick=spin;
 $('again').onclick=closeModal;
 $('remove').onclick=()=>{ if(winner>=0){names.splice(winner,1);setNames(names);winner=-1} closeModal() };
+$('removeAll').onclick=()=>{ if(winner>=0){const k=key(names[winner]);setNames(names.filter(n=>key(n)!==k));winner=-1} closeModal() };
 $('shuffle').onclick=()=>{const a=names.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}setNames(a)};
 $('sort').onclick=()=>setNames(names.slice().sort((a,b)=>a.localeCompare(b,'zh-CN')));
 $('clear').onclick=()=>{setNames([]);ta.focus()};
