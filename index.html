@@ -129,7 +129,17 @@ footer{text-align:center;padding:0 16px 30px;font-size:14px;font-weight:500}
 <script>
 const $=id=>document.getElementById(id), TAU=Math.PI*2;
 const cv=$('wheel'), c=cv.getContext('2d'), ta=$('names');
-const COLORS=[['#ffc2d9','#7a1f48'],['#fff6ea','#a3325f'],['#ffa8c8','#6b1740'],['#d8f1e8','#7a1f48']];
+// Chỉ dùng tông hồng; số ô mỗi màu luôn đều nhau (màu lặp theo ước nhỏ nhất của số tên)
+function segColors(n){
+  const T='#7a1f48';
+  if(n<2)return [['#ffc2d9',T]];
+  let c=2; while(n%c)c++;                       // c = ước nhỏ nhất ≥ 2 (nguyên tố thì c = n)
+  let pal;
+  if(c===2)pal=['#ffc2d9','#fff6ea'];
+  else if(c===3)pal=['#ffc2d9','#fff6ea','#ffa8c8'];
+  else pal=Array.from({length:c},(_,j)=>'hsl(338 100% '+(90-j*(16/(c-1)))+'%)'); // c ≥ 5: dải hồng đậm dần, mỗi ô một sắc độ
+  return Array.from({length:n},(_,i)=>[pal[i%c],T]);
+}
 let names=[], rot=0, spinning=false, winner=-1, muted=false;
 const key=t=>t.toLowerCase();
 
@@ -162,12 +172,12 @@ function draw(){
   if(!n){
     c.beginPath(); c.arc(0,0,r,0,TAU); c.fillStyle='#fff6ea'; c.fill();
   }else{
-    const seg=TAU/n;
+    const seg=TAU/n, cols=segColors(n);
     for(let i=0;i<n;i++){
-      let k=i%4; if(i===n-1&&n%4===1)k=2;
+      const K=cols[i];
       c.beginPath(); c.moveTo(0,0); c.arc(0,0,r,i*seg,(i+1)*seg); c.closePath();
-      c.fillStyle=COLORS[k][0]; c.fill(); c.lineWidth=1.5*d; c.strokeStyle='rgba(255,255,255,.95)'; c.stroke();
-      c.save(); c.rotate(i*seg+seg/2); c.textAlign='right'; c.textBaseline='middle'; c.fillStyle=COLORS[k][1];
+      c.fillStyle=K[0]; c.fill(); c.lineWidth=1.5*d; c.strokeStyle='rgba(255,255,255,.95)'; c.stroke();
+      c.save(); c.rotate(i*seg+seg/2); c.textAlign='right'; c.textBaseline='middle'; c.fillStyle=K[1];
       let fs=Math.max(11*d,Math.min(30*d,seg*r*.5)), t=names[i], maxW=r*.64;
       c.font='400 '+fs+'px "ZCOOL KuaiLe","Noto Sans SC",sans-serif';
       while(c.measureText(t).width>maxW&&fs>10*d){fs-=1;c.font='400 '+fs+'px "ZCOOL KuaiLe","Noto Sans SC",sans-serif'}
