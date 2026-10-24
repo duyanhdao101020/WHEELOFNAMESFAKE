@@ -143,14 +143,13 @@ function segColors(n){
 let names=[], rot=0, spinning=false, winner=-1, muted=false;
 const key=t=>t.toLowerCase();
 
-/* ---------- lưu danh sách ---------- */
-const KEY='wheel-names';
-let saved=null; try{saved=localStorage.getItem(KEY)}catch(e){}
-ta.value=saved!==null?saved:['张三','李四','隔壁老王','翠花','小明','二狗子'].join('\n');
+/* ---------- danh sách mặc định (mỗi lần mở trang đều bắt đầu từ danh sách này) ---------- */
+const DEFAULT_NAMES=['吕彩娜','张甲静','徐若涵','方灿','杨金蓄','于洁','王齐齐','付佳祺','谭雨婷','郑皞昀','苏彤彤','林圣雪','李晗睿','柯凤娇','马睿','孟凡双','蔡慧芳','孙嘉遥','阮舒芳','曲逸菲','王鸣静','唐雨璇'];
+ta.value=DEFAULT_NAMES.join('\n');
+
 function sync(){
   names=ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
   $('count').textContent=names.length+' 位同学';
-  try{localStorage.setItem(KEY,ta.value)}catch(e){}
   draw();
 }
 ta.addEventListener('input',sync);
