@@ -6,65 +6,84 @@
 <title>幸运转盘</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif:wght@500;700&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--red:#c8102e;--deep:#7d0c1b;--gold:#f2c14e;--cream:#fff0cc;--ink:#3a0910;
---serif:"Noto Serif SC","Noto Serif","Songti SC",SimSun,serif;--brush:"Ma Shan Zheng","Kaiti SC",KaiTi,STKaiti,serif}
+:root{--pink:#ff7aa8;--pink2:#ff5c97;--blush:#ffe3ee;--soft:#ffb3cd;--berry:#7a1f48;--cream:#fff6ea;
+--sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;--brush:"ZCOOL KuaiLe","Ma Shan Zheng","Kaiti SC",KaiTi,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
-body{font-family:var(--serif);color:var(--cream);background-color:var(--deep);
-background-image:radial-gradient(circle at 50% 100%,transparent 0 17px,rgba(242,193,78,.16) 18px 20px,transparent 21px),
-radial-gradient(circle at 50% 100%,transparent 0 17px,rgba(242,193,78,.16) 18px 20px,transparent 21px),
-radial-gradient(ellipse at 50% 0,#b3121f 0,transparent 70%);
+body{font-family:var(--sans);color:var(--berry);background-color:var(--blush);
+background-image:radial-gradient(circle at 50% 100%,transparent 0 17px,rgba(255,122,168,.2) 18px 20px,transparent 21px),
+radial-gradient(circle at 50% 100%,transparent 0 17px,rgba(255,122,168,.2) 18px 20px,transparent 21px),
+radial-gradient(ellipse at 50% 0,#fff 0,transparent 65%);
 background-size:44px 22px,44px 22px,100% 100%;background-position:0 0,22px 11px,0 0;
 padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
-header{text-align:center;padding:26px 16px 6px;position:relative}
-h1{font:400 clamp(44px,9vw,84px)/1.05 var(--brush);margin:0;color:var(--gold);letter-spacing:.08em;text-shadow:0 3px 0 var(--deep),0 0 24px rgba(242,193,78,.35)}
-header p{margin:6px 0 0;font-size:15px;opacity:.85}
-.lantern{position:absolute;top:-6px;font-size:clamp(44px,8vw,76px);transform-origin:50% 0;animation:sway 4s ease-in-out infinite;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+header,main,footer{position:relative;z-index:1}
+header{text-align:center;padding:26px 16px 6px}
+h1{font:400 clamp(46px,9vw,84px)/1.05 var(--brush);margin:0;color:var(--pink2);letter-spacing:.06em;transform:rotate(-2deg);text-shadow:0 3px 0 #fff,4px 7px 0 var(--soft)}
+header p{margin:8px 0 0;font-size:15px;font-weight:500}
+.mc{display:inline-flex;align-items:center;gap:10px;margin-top:12px}
+.panda{font-size:46px;line-height:1;animation:bob 1.6s ease-in-out infinite}
+.bubble{position:relative;background:#fff;border:2px solid var(--pink);border-radius:16px;padding:7px 13px;font-size:14px;font-weight:700;box-shadow:3px 3px 0 var(--soft)}
+.bubble::before{content:"";position:absolute;left:-9px;top:50%;margin-top:-7px;border:7px solid transparent;border-left:0;border-right-color:var(--pink)}
+.bubble.pop{animation:boing .4s}
+@keyframes bob{50%{transform:translateY(-6px) rotate(6deg)}}
+@keyframes boing{0%{transform:scale(.6)}60%{transform:scale(1.12)}}
+.lantern{position:absolute;top:-6px;font-size:clamp(44px,8vw,74px);transform-origin:50% 0;animation:sway 4s ease-in-out infinite;pointer-events:none}
 .lantern.l{left:3%}.lantern.r{right:3%;animation-delay:-2s}
-@keyframes sway{50%{transform:rotate(7deg)}0%,100%{transform:rotate(-7deg)}}
-main{display:flex;flex-wrap:wrap;gap:28px 40px;justify-content:center;align-items:flex-start;max-width:1100px;margin:0 auto;padding:18px 16px 48px}
+@keyframes sway{50%{transform:rotate(8deg)}0%,100%{transform:rotate(-8deg)}}
+.float span{position:fixed;bottom:-60px;font-size:30px;opacity:.55;pointer-events:none;z-index:0;animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-120vh) rotate(360deg)}}
+main{display:flex;flex-wrap:wrap;gap:28px 40px;justify-content:center;align-items:flex-start;max-width:1100px;margin:0 auto;padding:18px 16px 28px}
 .stage{position:relative;width:min(92vw,540px);aspect-ratio:1;flex:0 1 540px}
-canvas#wheel{width:100%;height:100%;display:block;cursor:pointer;filter:drop-shadow(0 14px 22px rgba(0,0,0,.45))}
-#pointer{position:absolute;left:50%;top:-10px;width:44px;height:58px;transform:translateX(-50%);transform-origin:50% 20%;z-index:2;
-background:linear-gradient(160deg,#ffe08a,#d9941a);clip-path:polygon(50% 100%,0 22%,18% 0,82% 0,100% 22%);filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
-.panel{flex:1 1 300px;max-width:440px;background:var(--cream);color:var(--ink);border:3px solid var(--gold);border-radius:6px;padding:18px;
-box-shadow:0 0 0 6px var(--deep),0 0 0 8px var(--gold),0 18px 30px rgba(0,0,0,.4)}
-.panel h2{margin:0 0 4px;font:400 30px var(--brush);color:var(--red)}
-.panel .hint{margin:0 0 10px;font-size:14px;opacity:.75}
-textarea{width:100%;height:260px;resize:vertical;border:2px solid #d9b25c;border-radius:4px;padding:10px 12px;font:600 17px/1.55 var(--serif);color:var(--ink);background:#fffaf0}
-textarea:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+canvas#wheel{width:100%;height:100%;display:block;cursor:pointer;filter:drop-shadow(0 12px 0 rgba(255,122,168,.28))}
+#pointer{position:absolute;left:50%;top:-10px;width:46px;height:58px;transform:translateX(-50%);transform-origin:50% 20%;z-index:2;
+background:linear-gradient(160deg,#ff9fc0,#ff3d82);clip-path:polygon(50% 100%,0 22%,18% 0,82% 0,100% 22%);filter:drop-shadow(0 3px 2px rgba(122,31,72,.4))}
+.panel{flex:1 1 300px;max-width:440px;background:#fff;border:3px solid var(--pink);border-radius:26px;padding:18px;box-shadow:7px 7px 0 var(--soft)}
+.panel h2{margin:0 0 4px;font:400 30px var(--brush);color:var(--pink2)}
+.panel .hint{margin:0 0 10px;font-size:14px;opacity:.8}
+textarea{width:100%;height:260px;resize:vertical;border:2px dashed #ff9fc0;border-radius:16px;padding:10px 14px;font:700 17px/1.6 var(--sans);color:var(--berry);background:#fff9fb}
+textarea:focus-visible,button:focus-visible{outline:3px solid var(--pink2);outline-offset:2px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-.count{font-size:14px;margin-right:auto}
-button{font:700 15px var(--serif);border:2px solid var(--red);background:transparent;color:var(--red);padding:8px 14px;border-radius:4px;cursor:pointer}
-button:hover{background:rgba(200,16,46,.09)}
-button.go{width:100%;margin-top:14px;padding:14px;font:400 34px var(--brush);letter-spacing:.3em;text-indent:.3em;color:#fff3cf;border:2px solid var(--gold);
-background:linear-gradient(#e0263f,#a30c20);box-shadow:0 4px 0 #6c0715}
-button.go:hover{background:linear-gradient(#ea3550,#b30e25)}
-button.go:active{transform:translateY(3px);box-shadow:0 1px 0 #6c0715}
+.count{font-size:14px;font-weight:700;margin-right:auto}
+button{font:700 15px var(--sans);border:2px solid var(--pink);background:#fff;color:var(--pink2);padding:8px 15px;border-radius:999px;cursor:pointer}
+button:hover{background:#fff0f6}
+button.go{width:100%;margin-top:14px;padding:12px;font:400 34px var(--brush);letter-spacing:.15em;text-indent:.15em;color:#fff;border:3px solid #fff;
+background:linear-gradient(#ff8fb8,#ff5c97);box-shadow:0 5px 0 #d93a79,0 0 0 2px var(--pink2)}
+button.go:hover{background:linear-gradient(#ff9fc0,#ff6ba2)}
+button.go:active{transform:translateY(4px);box-shadow:0 1px 0 #d93a79,0 0 0 2px var(--pink2)}
 button:disabled{opacity:.55;cursor:not-allowed}
-#mute,#music{position:fixed;bottom:12px;z-index:5;background:var(--gold);color:var(--ink);border-color:var(--deep);font-size:20px;padding:6px 12px}
+#mute,#music{position:fixed;bottom:12px;z-index:5;font-size:20px;padding:6px 12px;box-shadow:2px 3px 0 var(--soft)}
 #mute{right:12px}#music{right:68px}#music.off{opacity:.55;text-decoration:line-through}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:8}
-.modal{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(40,0,6,.7);padding:16px}
+.modal{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(122,31,72,.55);padding:16px}
 .modal.on{display:flex}
-.card{width:min(92vw,440px);text-align:center;background:var(--cream);color:var(--ink);border:4px solid var(--gold);border-radius:8px;padding:26px 20px 22px;
-box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6);animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
-@keyframes pop{from{transform:scale(.5);opacity:0}}
-.card .gx{font:400 52px var(--brush);color:var(--red)}
-.card .who{font:700 clamp(30px,8vw,46px)/1.2 var(--serif);margin:8px 0 4px;overflow-wrap:anywhere;color:var(--deep)}
+.card{width:min(92vw,440px);text-align:center;background:#fff;border:4px solid var(--pink);border-radius:30px;padding:26px 20px 22px;
+box-shadow:8px 8px 0 var(--soft);animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{from{transform:scale(.5) rotate(-6deg);opacity:0}}
+.card .gx{font:400 clamp(34px,9vw,48px)/1.1 var(--brush);color:var(--pink2)}
+.card .sub{font-size:15px;font-weight:700;margin-top:6px}
+.card .who{font:400 clamp(36px,10vw,56px)/1.2 var(--brush);margin:10px 0 2px;overflow-wrap:anywhere;color:var(--berry);text-shadow:0 3px 0 var(--soft)}
 .card .row{justify-content:center;margin-top:18px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--gold);color:var(--ink);padding:10px 18px;border-radius:4px;font-weight:700;opacity:0;transition:opacity .25s;z-index:10;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--pink2);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:opacity .25s;z-index:10;pointer-events:none}
 .toast.on{opacity:1}
-@media (prefers-reduced-motion:reduce){.lantern,.card{animation:none}}
+footer{text-align:center;padding:0 16px 30px;font-size:14px;font-weight:500}
+.flip{display:inline-block;transform:rotate(180deg);font:400 28px var(--brush);color:var(--pink2);margin-right:6px;vertical-align:middle}
+@media (prefers-reduced-motion:reduce){.lantern,.card,.panda,.bubble.pop{animation:none}.float{display:none}}
 </style>
 </head>
 <body>
+<div class="float" aria-hidden="true">
+  <span style="left:6%;animation-duration:19s">🧋</span><span style="left:20%;animation-duration:24s;animation-delay:-8s">🥟</span>
+  <span style="left:36%;animation-duration:21s;animation-delay:-14s">🧧</span><span style="left:52%;animation-duration:26s;animation-delay:-3s">🌸</span>
+  <span style="left:68%;animation-duration:20s;animation-delay:-11s">🍡</span><span style="left:82%;animation-duration:23s;animation-delay:-17s">🐼</span>
+  <span style="left:93%;animation-duration:25s;animation-delay:-6s">🥢</span>
+</div>
 <header>
-  <span class="lantern l" aria-hidden="true">🏮</span><span class="lantern r" aria-hidden="true">🏮</span>
+  <span class="lantern l" aria-hidden="true">🏮</span><span class="lantern r" aria-hidden="true">🧧</span>
   <h1>幸运转盘</h1>
-  <p>每行一个名字，转出今日幸运儿</p>
+  <p>转一转，看看今天谁上讲台 🎤</p>
+  <div class="mc"><span class="panda" aria-hidden="true">🐼</span><span class="bubble" id="bubble" aria-live="polite">快转快转～</span></div>
 </header>
 
 <main>
@@ -74,18 +93,20 @@ box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6)
   </section>
 
   <section class="panel">
-    <h2>名单</h2>
-    <p class="hint">输入名字，按回车键换行。</p>
-    <textarea id="names" spellcheck="false" placeholder="张伟&#10;李明&#10;王芳"></textarea>
+    <h2>同学名单</h2>
+    <p class="hint">一行一个名字，按回车换行，别写错字哦～</p>
+    <textarea id="names" spellcheck="false" placeholder="张三&#10;李四&#10;隔壁老王"></textarea>
     <div class="row">
       <span class="count" id="count"></span>
-      <button id="shuffle" type="button">打乱</button>
-      <button id="sort" type="button">排序</button>
-      <button id="clear" type="button">清空</button>
+      <button id="shuffle" type="button">洗牌</button>
+      <button id="sort" type="button">排队</button>
+      <button id="clear" type="button">跑路</button>
     </div>
-    <button class="go" id="spin" type="button">开 始</button>
+    <button class="go" id="spin" type="button">转起来！</button>
   </section>
 </main>
+
+<footer><span class="flip">福</span>福倒啦＝福到啦～ 本转盘仅供课堂娱乐，上台请自觉 ✏️</footer>
 
 <button id="music" type="button" title="背景音乐" aria-label="背景音乐">🎵</button>
 <button id="mute" type="button" title="开关声音" aria-label="开关声音">🔊</button>
@@ -94,13 +115,13 @@ box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6)
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="who">
   <div class="card">
-    <div class="gx">恭喜发财！</div>
-    <div>恭喜幸运儿</div>
+    <div class="gx" id="gx"></div>
+    <div class="sub" id="sub"></div>
     <div class="who" id="who"></div>
     <div class="row">
-      <button id="again" type="button">再转一次</button>
-      <button id="remove" type="button">移除此名</button>
-      <button id="removeAll" type="button" hidden></button>
+      <button id="again" type="button">好吧，我上！🎤</button>
+      <button id="remove" type="button">🗑️ 删除这个名字</button>
+      <button id="removeAll" type="button">🗑️ 删除所有同名</button>
     </div>
   </div>
 </div>
@@ -108,17 +129,17 @@ box-shadow:0 0 0 7px var(--red),0 0 0 9px var(--gold),0 24px 50px rgba(0,0,0,.6)
 <script>
 const $=id=>document.getElementById(id), TAU=Math.PI*2;
 const cv=$('wheel'), c=cv.getContext('2d'), ta=$('names');
-const COLORS=[['#c8102e','#ffe9ad'],['#fff0cc','#7d0c1b'],['#7d0c1b','#ffe9ad'],['#f2c14e','#7d0c1b']];
+const COLORS=[['#ffc2d9','#7a1f48'],['#fff6ea','#a3325f'],['#ffa8c8','#6b1740'],['#d8f1e8','#7a1f48']];
 let names=[], rot=0, spinning=false, winner=-1, muted=false;
 const key=t=>t.toLowerCase();
 
 /* ---------- lưu danh sách ---------- */
 const KEY='wheel-names';
 let saved=null; try{saved=localStorage.getItem(KEY)}catch(e){}
-ta.value=saved!==null?saved:['张伟','李明','王芳','刘洋','陈静','杨帆'].join('\n');
+ta.value=saved!==null?saved:['张三','李四','隔壁老王','翠花','小明','二狗子'].join('\n');
 function sync(){
   names=ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
-  $('count').textContent=names.length+' 个名字';
+  $('count').textContent=names.length+' 位同学';
   try{localStorage.setItem(KEY,ta.value)}catch(e){}
   draw();
 }
@@ -134,22 +155,22 @@ function draw(){
   const s=cv.width, R=s/2, r=R*.925, n=names.length, d=s/540;
   c.clearRect(0,0,s,s); c.save(); c.translate(R,R);
   // vành vàng
-  const g=c.createLinearGradient(-R,-R,R,R); g.addColorStop(0,'#ffe08a'); g.addColorStop(.5,'#d9941a'); g.addColorStop(1,'#ffe08a');
+  const g=c.createLinearGradient(-R,-R,R,R); g.addColorStop(0,'#fff0f6'); g.addColorStop(.5,'#ff8fb8'); g.addColorStop(1,'#fff0f6');
   c.beginPath(); c.arc(0,0,R*.99,0,TAU); c.fillStyle=g; c.fill();
-  c.beginPath(); c.arc(0,0,R*.95,0,TAU); c.fillStyle='#7d0c1b'; c.fill();
+  c.beginPath(); c.arc(0,0,R*.95,0,TAU); c.fillStyle='#ff7aa8'; c.fill();
   c.save(); c.rotate(rot);
   if(!n){
-    c.beginPath(); c.arc(0,0,r,0,TAU); c.fillStyle='#fff0cc'; c.fill();
+    c.beginPath(); c.arc(0,0,r,0,TAU); c.fillStyle='#fff6ea'; c.fill();
   }else{
     const seg=TAU/n;
     for(let i=0;i<n;i++){
       let k=i%4; if(i===n-1&&n%4===1)k=2;
       c.beginPath(); c.moveTo(0,0); c.arc(0,0,r,i*seg,(i+1)*seg); c.closePath();
-      c.fillStyle=COLORS[k][0]; c.fill(); c.lineWidth=1.5*d; c.strokeStyle='rgba(242,193,78,.7)'; c.stroke();
+      c.fillStyle=COLORS[k][0]; c.fill(); c.lineWidth=1.5*d; c.strokeStyle='rgba(255,255,255,.95)'; c.stroke();
       c.save(); c.rotate(i*seg+seg/2); c.textAlign='right'; c.textBaseline='middle'; c.fillStyle=COLORS[k][1];
       let fs=Math.max(11*d,Math.min(30*d,seg*r*.5)), t=names[i], maxW=r*.64;
-      c.font='700 '+fs+'px "Noto Serif SC","Noto Serif",serif';
-      while(c.measureText(t).width>maxW&&fs>10*d){fs-=1;c.font='700 '+fs+'px "Noto Serif SC","Noto Serif",serif'}
+      c.font='400 '+fs+'px "ZCOOL KuaiLe","Noto Sans SC",sans-serif';
+      while(c.measureText(t).width>maxW&&fs>10*d){fs-=1;c.font='400 '+fs+'px "ZCOOL KuaiLe","Noto Sans SC",sans-serif'}
       while(c.measureText(t).width>maxW&&t.length>1)t=t.slice(0,-1);
       if(t!==names[i])t=t.slice(0,-1)+'…';
       c.fillText(t,r*.93,0); c.restore();
@@ -157,12 +178,12 @@ function draw(){
   }
   c.restore();
   // đinh trang trí
-  c.fillStyle='#fff0cc';
+  c.fillStyle='#fff';
   for(let i=0;i<28;i++){const a=i*TAU/28;c.beginPath();c.arc(Math.cos(a)*R*.97,Math.sin(a)*R*.97,R*.011,0,TAU);c.fill()}
   // lõi 福
-  const h=c.createRadialGradient(0,-R*.03,2,0,0,R*.15); h.addColorStop(0,'#fff0cc'); h.addColorStop(1,'#e0a62a');
-  c.beginPath(); c.arc(0,0,R*.15,0,TAU); c.fillStyle=h; c.fill(); c.lineWidth=4*d; c.strokeStyle='#7d0c1b'; c.stroke();
-  c.fillStyle='#c8102e'; c.font='400 '+R*.19+'px "Ma Shan Zheng","Kaiti SC",KaiTi,serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('福',0,R*.015);
+  const h=c.createRadialGradient(0,-R*.03,2,0,0,R*.15); h.addColorStop(0,'#fff'); h.addColorStop(1,'#ffc2d9');
+  c.beginPath(); c.arc(0,0,R*.15,0,TAU); c.fillStyle=h; c.fill(); c.lineWidth=4*d; c.strokeStyle='#ff7aa8'; c.stroke();
+  c.font=(R*.14)+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('🐼',0,R*.01);
   c.restore();
 }
 function idxAt(a){const n=names.length,seg=TAU/n,x=((1.5*Math.PI-a)%TAU+TAU)%TAU;return Math.floor(x/seg)%n}
@@ -207,7 +228,7 @@ const sfx={
       b.type='bandpass'; b.frequency.value=900; b.Q.value=3; g.gain.setValueAtTime(0,st); g.gain.linearRampToValueAtTime(.09,st+.12); g.gain.exponentialRampToValueAtTime(.001,st+1);
       o.connect(b); b.connect(g); g.connect(master); o.start(st); o.stop(st+1.05);
     }
-    setTimeout(()=>{try{const v=speechSynthesis.getVoices().find(v=>/^zh/i.test(v.lang)); if(v){const u=new SpeechSynthesisUtterance('恭喜发财！');u.voice=v;u.lang=v.lang;u.pitch=1.3;u.rate=.9;speechSynthesis.speak(u)}}catch(e){}},700);
+    setTimeout(()=>{try{const v=speechSynthesis.getVoices().find(v=>/^zh/i.test(v.lang)); if(v){const u=new SpeechSynthesisUtterance('请你上讲台！');u.voice=v;u.lang=v.lang;u.pitch=1.3;u.rate=.9;speechSynthesis.speak(u)}}catch(e){}},700);
   }
 };
 
@@ -250,15 +271,15 @@ function restoreSoon(){clearTimeout(rt);rt=setTimeout(()=>level(.4,1.8),4200)} /
 /* ---------- pháo giấy ---------- */
 function confetti(){
   const k=$('fx'),x=k.getContext('2d'); k.width=innerWidth; k.height=innerHeight;
-  const cols=['#f2c14e','#c8102e','#fff0cc','#ff6a3d'];
-  const P=Array.from({length:170},()=>({x:innerWidth/2+(Math.random()-.5)*240,y:innerHeight*.55,vx:(Math.random()-.5)*17,vy:-Math.random()*17-5,
-    w:6+Math.random()*6,h:10+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.random()*4|0],coin:Math.random()<.25}));
+  const cols=['#ff8fb8','#ffd1e1','#fff0b8','#c9f0e1','#e5d4ff'], em=['✏️','📚','👏','🌸','🐼','💖','🍡'];
+  const P=Array.from({length:150},()=>({x:innerWidth/2+(Math.random()-.5)*240,y:innerHeight*.55,vx:(Math.random()-.5)*17,vy:-Math.random()*17-5,
+    w:6+Math.random()*6,h:10+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.random()*5|0],e:Math.random()<.3?pick(em):null}));
   let f=0;
   (function a(){
     x.clearRect(0,0,k.width,k.height);
     for(const p of P){
       p.vy+=.35; p.x+=p.vx; p.y+=p.vy; p.vx*=.99; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c;
-      if(p.coin){x.fillStyle='#f2c14e';x.beginPath();x.arc(0,0,8,0,TAU);x.fill();x.fillStyle='#7d0c1b';x.fillRect(-2.5,-2.5,5,5)}
+      if(p.e){x.font='26px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(p.e,0,0)}
       else x.fillRect(-p.w/2,-p.h/2,p.w,p.h);
       x.restore();
     }
@@ -271,8 +292,8 @@ function toast(m,ms){const t=$('toast');t.textContent=m;t.classList.add('on');cl
 function flick(){$('pointer').animate([{transform:'translateX(-50%) rotate(-24deg)'},{transform:'translateX(-50%) rotate(0)'}],{duration:130})}
 function spin(){
   if(spinning)return;
-  if(names.length<2){toast('至少需要两个名字');return}
-  audio(); startMusic(); clearTimeout(rt); level(.1,.6); spinning=true; $('spin').disabled=true; sfx.start();
+  if(names.length<2){toast('至少要两位同学啦，一个人转个寂寞？');return}
+  audio(); startMusic(); clearTimeout(rt); level(.1,.6); say('spin'); spinning=true; $('spin').disabled=true; sfx.start();
   const start=rot, total=(6+Math.floor(Math.random()*3))*TAU+Math.random()*TAU, dur=6500+Math.random()*1500, t0=performance.now();
   let last=idxAt(rot);
   (function f(now){
@@ -285,11 +306,24 @@ function spin(){
 function done(i){
   spinning=false; $('spin').disabled=false; winner=i;
   const dup=names.filter(n=>key(n)===key(names[i])).length;
-  $('removeAll').hidden=dup<2; $('removeAll').textContent='移除全部同名（'+dup+'）';
+  $('removeAll').textContent='🗑️ 删除所有同名（'+dup+'）';
+  $('gx').textContent=pick(LINES.gx); $('sub').textContent=pick(LINES.sub); say('win');
   $('who').textContent=names[i]; $('modal').classList.add('on'); $('again').focus();
   restoreSoon(); sfx.win(); confetti();
 }
 function closeModal(){$('modal').classList.remove('on');try{speechSynthesis.cancel()}catch(e){}}
+
+/* ---------- lời thoại của gấu trúc MC ---------- */
+const LINES={
+  idle:['转我转我～','今天谁上讲台？🎤','别选我别选我…','快点，我粉笔都写完了','作业写了吗？别紧张～','我只是只熊猫，但我懂你','手痒了吧？点一下～'],
+  spin:['紧张！紧张！','手心出汗了…','不是我不是我！','芜湖～','老师在看你哦 👀','我赌五毛，不是我'],
+  win:['笑死，是你！','哈哈哈哈哈','请上讲台！','全班都在看你 👀','熊猫表示：节哀'],
+  gx:['芜湖～起飞！','请上讲台！','就决定是你了！','天选之子！','认命吧，是你！','这波躲不掉！'],
+  sub:['讲台已就位 🎤','粉笔递给你啦 ✏️','躲不掉的，笑一个 😎','掌声在哪里？👏','全班同学：不是我 🥟']
+};
+const pick=a=>a[Math.random()*a.length|0];
+function say(k){const b=$('bubble');b.textContent=pick(LINES[k]);b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
+setInterval(()=>{if(!spinning&&!$('modal').classList.contains('on'))say('idle')},6000);
 
 /* ---------- sự kiện ---------- */
 $('spin').onclick=spin; cv.onclick=spin;
